@@ -20,7 +20,7 @@ def register():
     email = input("Inserisci email: ")
     password = getpass("Inserisci password: ")
 
-    if r.hgetall(email) != {}:
+    if not r.hgetall(email):
         raise ValueError("Utente già registrato")
     else:
         r.hset(email, mapping={
@@ -43,6 +43,22 @@ def login():
     return user
 
 def nuova_proposta(user):
+    titolo = input(f"Ciao {user}, inserisci il titolo della tua proposta: ")
+    while r.exists(titolo):
+        titolo = input("Mi dispiace c'è già esistente, ti consiglio di cambiare titolo: ")
+    testo = input("Molto bene, ora fai una breve descrizione della tua descrizione:")
+    r.sadd(titolo,testo)
+    scelta = int(input("Se è una proposta fatta in collaborazione inserisci 1, se è una idea solo tua allora 0:"))
+    if scelta == 1:
+        compagni = input("Inserisci i tuoi compagni separati da virgola").split(",")
+        r.sadd(testo, email, [x for x in compagni])
+    else:
+        r.sadd(testo, email)
+
+
+    #per ottenere il testo bastera fare sismember(titolo)
+    #mentre per ottenere chi ha fatto la proposta basta fare sismemer(sismeber(titolo))
+
     """
     Permette all'utente di creare una nuova proposta.
     L'utente inserisce il titolo e la descrizione della proposta.
