@@ -30,7 +30,6 @@ def register():
         print(f"Benvenuto, {user}!")
     return user
 
-
 def login():
     email = input("Inserisci email: ")
     password = getpass("Inserisci password: ")
@@ -43,6 +42,18 @@ def login():
         print(f"Benvenuto, {user}!")
     return user
 
+def nuova_proposta(user):
+    return
+
+def vota_proposta(user):
+    return
+
+def vedi_proposte(user):
+    return
+
+def controlla_proposte_simili(proposta):
+    return
+
 def main():
     print("1. Login\n2. Registrazione")
     choice = int(input())
@@ -53,3 +64,16 @@ def main():
         user = register()
     else:
         raise ValueError("Valore non valido")
+    
+    while True:
+        print("1. Nuova proposta\n2. Vota proposta\n3. Vedi proposte\n4. Esci")
+        choice = int(input())
+        if choice == 1:
+            nuova_proposta(user)
+        elif choice == 2:
+            vota_proposta(user)
+        elif choice == 3:
+            vedi_proposte(user)
+        elif choice == 4:
+            print("Arrivederci!")
+            break
