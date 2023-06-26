@@ -8,19 +8,20 @@ from dotenv import load_dotenv
 load_dotenv()
 
 r = redis.Redis(
-    host=os.getenv("REDIS_HOST"),
-    port=os.getenv("REDIS_PORT"),
-    password=os.getenv("REDIS_PASSWORD"),
+    host=os.getenv("redis-19972.c300.eu-central-1-1.ec2.cloud.redislabs.com"),
+    port=os.getenv("19972"),
+    password=os.getenv("NgAd1ouoICZTBouwpkWjCzPm2YUE0GBS"),
 )
 
 fernet = Fernet(r.get("ENCRIPTION_KEY"))
+
 
 def register():
     user = input("Inserisci username: ")
     email = input("Inserisci email: ")
     password = getpass("Inserisci password: ")
 
-    if not r.hgetall(email):
+    if r.hgetall(email):
         raise ValueError("Utente già registrato")
     else:
         r.hset(email, mapping={
@@ -29,6 +30,7 @@ def register():
         })
         print(f"Benvenuto, {user}!")
     return user
+
 
 def login():
     email = input("Inserisci email: ")
@@ -42,22 +44,25 @@ def login():
         print(f"Benvenuto, {user}!")
     return user
 
+
 def nuova_proposta(user):
     titolo = input(f"Ciao {user}, inserisci il titolo della tua proposta: ")
-    while r.exists(titolo):
-        titolo = input("Mi dispiace c'è già esistente, ti consiglio di cambiare titolo: ")
     testo = input("Molto bene, ora fai una breve descrizione della tua descrizione:")
-    r.sadd(titolo,testo)
+    controlla_proposte_simili(user)
+    r.sadd(titolo, testo)
     scelta = int(input("Se è una proposta fatta in collaborazione inserisci 1, se è una idea solo tua allora 0:"))
     if scelta == 1:
-        compagni = input("Inserisci i tuoi compagni separati da virgola").split(",")
-        r.sadd(testo, email, [x for x in compagni])
+        print("Per uscire scrivere exit")
+        while True:
+            email_compagno = input("Inserisci l'email del tuo compagno: ")
+            if email_compagno == "exit":
+                break
+            r.sadd(testo, email_compagno)
     else:
         r.sadd(testo, email)
 
-
-    #per ottenere il testo bastera fare sismember(titolo)
-    #mentre per ottenere chi ha fatto la proposta basta fare sismemer(sismeber(titolo))
+    # per ottenere il testo bastera fare sismember(titolo)
+    # mentre per ottenere chi ha fatto la proposta basta fare sismemer(sismeber(titolo))
 
     """
     Permette all'utente di creare una nuova proposta.
@@ -70,6 +75,7 @@ def nuova_proposta(user):
     """
     return
 
+
 def vota_proposta(user):
     """
     Permette all'utente di votare una proposta.
@@ -80,12 +86,14 @@ def vota_proposta(user):
     """
     return
 
+
 def vedi_proposte(user):
     """
     Permette all'utente di vedere le proposte.
     L'utente può vedere le proposte ordinate per numero di voti (lunghezza del set).    
     """
     return
+
 
 def controlla_proposte_simili(proposta):
     """
@@ -94,6 +102,7 @@ def controlla_proposte_simili(proposta):
     Se ci sono proposte simili non permette di creare la proposta ma viene aggiunto alla proposta l'utente che ha creato la proposta simile.
     """
     return
+
 
 def main():
     print("1. Login\n2. Registrazione")
@@ -105,7 +114,7 @@ def main():
         user = register()
     else:
         raise ValueError("Valore non valido")
-    
+
     while True:
         print("1. Nuova proposta\n2. Vota proposta\n3. Vedi proposte\n4. Esci")
         choice = int(input())
