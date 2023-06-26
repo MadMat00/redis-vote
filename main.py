@@ -54,7 +54,7 @@ def nuova_proposta(user):
     """
     return
 
-def vota_proposta(user):
+def vota_proposta(user, email, r, proposta):
     """
     Permette all'utente di votare una proposta.
     L'utente inserisce il titolo della proposta.
@@ -62,7 +62,17 @@ def vota_proposta(user):
     Non ci possono essere più voti per la stessa proposta da parte dello stesso utente(il set da errore).
     L'utente non può votare la sua proposta.
     """
-    return
+
+    # struttura della proposta: "Testo": set{ votante1, votante2, ...}
+    
+    # Controlla se email è presente nel set "proposta"
+    if r.sismember(proposta, email):
+        print("Hai già votato, non puoi votare due volte.")
+    else:
+        r.sadd(proposta, email)
+        voti = r.scard(proposta) # cardinalità del set
+        print(f"Hai votato la proposta: {proposta}.\nNumero voti: {voti}")
+
 
 def vedi_proposte(user):
     """
