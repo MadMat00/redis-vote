@@ -1,0 +1,15 @@
+strutture dei hash:
+chiave;campo;valore
+
+email     user 		psw
+
+
+Strutte dei set:
+chiave;valore
+
+titolo      testo
+
+
+testo 	    email delle persone che hanno votato
+
+
