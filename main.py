@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 r = redis.Redis(
-    host=os.getenv("redis-19972.c300.eu-central-1-1.ec2.cloud.redislabs.com"),
-    port=os.getenv("19972"),
-    password=os.getenv("NgAd1ouoICZTBouwpkWjCzPm2YUE0GBS"),
+    host=os.getenv("REDIS_HOST"),
+    port=os.getenv("REDIS_PORT"),
+    password=os.getenv("REDIS_PASSWORD"),
 )
 
 fernet = Fernet(r.get("ENCRIPTION_KEY"))
@@ -42,10 +42,10 @@ def login():
             raise ValueError("Password errata")
         user = r.hget(email, "Username").decode()
         print(f"Benvenuto, {user}!")
-    return user
+    return user, email
 
 
-def nuova_proposta(user):
+def nuova_proposta(user, email):
     titolo = input(f"Ciao {user}, inserisci il titolo della tua proposta: ")
     testo = input("Molto bene, ora fai una breve descrizione della tua descrizione:")
     controlla_proposte_simili(user)
@@ -57,7 +57,8 @@ def nuova_proposta(user):
             email_compagno = input("Inserisci l'email del tuo compagno: ")
             if email_compagno == "exit":
                 break
-            r.sadd(testo, email_compagno)
+            r.sadd(testo, email_compagno) # qui inserisce la mail di chi l'ha proposta,
+                                          # può avere senso se si ipotizza che chi propone vota
     else:
         r.sadd(testo, email)
 
@@ -75,7 +76,7 @@ def nuova_proposta(user):
     """
     return
 
-def vota_proposta(user):
+def vota_proposta(user, email, proposta):
     """
     Permette all'utente di votare una proposta.
     L'utente inserisce il titolo della proposta.
@@ -83,10 +84,24 @@ def vota_proposta(user):
     Non ci possono essere più voti per la stessa proposta da parte dello stesso utente(il set da errore).
     L'utente non può votare la sua proposta.
     """
+    # struttura del set proposta: "Testo": set{ votante1, votante2, ...}
 
-    # struttura della proposta: "Testo": set{ votante1, votante2, ...}
+    print("Ecco le proposte:\n")
+    vedi_proposte()
+    print("\nQuale vuoi votare? Inserisci qui il testo della proposta: ")
+
+    # option 1:
+     # l'utente inserisce il testo della proposta in choice 
+     # -> abbiamo la chiave del set
+    choice = str(input())
+
+    # opzione 2:
+     # l'utente inserisce il numero della proposta in choice
+     # -> bisogna richiamare vedi_proposte() o iterare sulle proposte
+     # problema: come trovo la proposta numero n?
     
-    # Controlla se email è presente nel set "proposta"
+    proposta = choice
+    # Controlla se la email è presente nel set con chiave = proposta
     if r.sismember(proposta, email):
         print("Hai già votato, non puoi votare due volte.")
     else:
@@ -118,7 +133,7 @@ def main():
     choice = int(input())
 
     if choice == 1:
-        user = login()
+        user, email = login()
     elif choice == 2:
         user = register()
     else:
@@ -128,7 +143,7 @@ def main():
         print("1. Nuova proposta\n2. Vota proposta\n3. Vedi proposte\n4. Esci")
         choice = int(input())
         if choice == 1:
-            nuova_proposta(user)
+            nuova_proposta(user, email)
         elif choice == 2:
             vota_proposta(user)
         elif choice == 3:
@@ -136,3 +151,6 @@ def main():
         elif choice == 4:
             print("Arrivederci!")
             break
+
+if __name__ == '__main__':
+    main()
