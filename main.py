@@ -47,9 +47,9 @@ def login():
 
 def nuova_proposta(user, email):
     titolo = input(f"Ciao {user}, inserisci il titolo della tua proposta: ")
-    testo = input("Molto bene, ora fai una breve descrizione della tua descrizione:")
+    testo = input("Molto bene, ora fai una breve descrizione della tua descrizione: ")
     controlla_proposte_simili(user)
-    r.sadd(titolo, testo)
+
     scelta = int(input("Se è una proposta fatta in collaborazione inserisci 1, se è una idea solo tua allora 0:"))
     if scelta == 1:
         print("Per uscire scrivere exit")
@@ -57,10 +57,17 @@ def nuova_proposta(user, email):
             email_compagno = input("Inserisci l'email del tuo compagno: ")
             if email_compagno == "exit":
                 break
-            r.sadd(testo, email_compagno) # qui inserisce la mail di chi l'ha proposta,
-                                          # può avere senso se si ipotizza che chi propone vota
+            autori.append(email_compagno)
     else:
-        r.sadd(testo, email)
+        autori.append(email)
+
+    # Set Titolo:Testo, Autori
+    #for a in autori:
+    #    r.sadd(titolo + ":" + testo, a)
+    [r.sadd(titolo + ":" + testo, a) for a in autori]
+    # Set Testo, Votanti
+    for a in autori:
+        r.sadd(testo, a) # si suppone che gli autori votino
 
     # per ottenere il testo bastera fare sismember(titolo)
     # mentre per ottenere chi ha fatto la proposta basta fare sismemer(sismeber(titolo))
