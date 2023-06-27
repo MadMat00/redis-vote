@@ -4,6 +4,7 @@ from cryptography.fernet import Fernet
 import datetime
 import os
 from dotenv import load_dotenv
+import re
 
 load_dotenv()
 
@@ -11,6 +12,7 @@ r = redis.Redis(
     host=os.getenv("REDIS_HOST"),
     port=os.getenv("REDIS_PORT"),
     password=os.getenv("REDIS_PASSWORD"),
+    decode_responses=True
 )
 
 fernet = Fernet(r.get("ENCRIPTION_KEY"))
@@ -29,7 +31,7 @@ def register():
             "Password": fernet.encrypt(password.encode())
         })
         print(f"Benvenuto, {user}!")
-    return user
+    return user, email
 
 
 def login():
@@ -40,7 +42,7 @@ def login():
     else:
         if fernet.decrypt(r.hget(email, "Password")).decode() != password:
             raise ValueError("Password errata")
-        user = r.hget(email, "Username").decode()
+        user = r.hget(email, "Username")
         print(f"Benvenuto, {user}!")
     return user, email
 
@@ -48,16 +50,18 @@ def login():
 def nuova_proposta(user, email):
     titolo = input(f"Ciao {user}, inserisci il titolo della tua proposta: ")
     testo = input("Molto bene, ora fai una breve descrizione della tua descrizione: ")
+    autori = []
     controlla_proposte_simili(user)
 
     scelta = int(input("Se è una proposta fatta in collaborazione inserisci 1, se è una idea solo tua allora 0:"))
     if scelta == 1:
+        autori.append(email) # aggiunge email dell'utente
         print("Per uscire scrivere exit")
         while True:
             email_compagno = input("Inserisci l'email del tuo compagno: ")
             if email_compagno == "exit":
                 break
-            autori.append(email_compagno)
+            autori.append(email_compagno) # email dei co-autori
     else:
         autori.append(email)
 
@@ -83,7 +87,7 @@ def nuova_proposta(user, email):
     """
     return
 
-def vota_proposta(user, email, proposta):
+def vota_proposta(user, email):
     """
     Permette all'utente di votare una proposta.
     L'utente inserisce il titolo della proposta.
@@ -93,37 +97,57 @@ def vota_proposta(user, email, proposta):
     """
     # struttura del set proposta: "Testo": set{ votante1, votante2, ...}
 
-    print("Ecco le proposte:\n")
-    vedi_proposte()
-    print("\nQuale vuoi votare? Inserisci qui il testo della proposta: ")
+    vedi_proposte(user)
+    # print("\nQuale vuoi votare? Inserisci qui il testo della proposta: ")
+    print("\nQuale vuoi votare? Inserisci qui il numero: ")
+    choice = int(input())
 
-    # option 1:
-     # l'utente inserisce il testo della proposta in choice 
-     # -> abbiamo la chiave del set
-    choice = str(input())
-
-    # opzione 2:
-     # l'utente inserisce il numero della proposta in choice
-     # -> bisogna richiamare vedi_proposte() o iterare sulle proposte
-     # problema: come trovo la proposta numero n?
+    proposte = r.keys("*:*")
+    # Ordina in base al numero di voti (come le vede l'utente)
+    proposte.sort(key = lambda p: r.scard(p.split(":")[1]), reverse=True)
+    _, testo = proposte[choice].split(":")
     
-    proposta = choice
+    
     # Controlla se la email è presente nel set con chiave = proposta
-    if r.sismember(proposta, email):
-        print("Hai già votato, non puoi votare due volte.")
+    if r.sismember(testo, email):
+        print("Hai già votato, non puoi votare due volte.\n")
     else:
-        r.sadd(proposta, email)
-        voti = r.scard(proposta) # cardinalità del set
-        print(f"Hai votato la proposta: {proposta}.\nNumero voti: {voti}")
+        r.sadd(testo, email)
+        voti = r.scard(testo) # cardinalità del set
+        print(f"Hai votato la proposta: {testo}.\nNumero voti: {voti}")
 
 
 
 def vedi_proposte(user):
     """
     Permette all'utente di vedere le proposte.
-    L'utente può vedere le proposte ordinate per numero di voti (lunghezza del set).    
+    L'utente può vedere le proposte ordinate per numero di voti (lunghezza del set).
     """
-    return
+    # Il formato della chiave è "Titolo:Testo"
+    proposte = r.keys("*:*")
+    # Ordina in base al numero di voti
+    proposte.sort(key = lambda p: r.scard(p.split(":")[1]), reverse=True)
+    # Itera e stampa
+    print("\nEcco le proposte:\n")
+    for proposta, i in zip(proposte, range(len(proposte))):
+        titolo, testo = proposta.split(":")
+        voti = r.scard(testo)
+        email_autori = list( r.smembers(proposta))
+        
+        """
+        # Codice per stampare gli Username degli autori, invece che le mail
+        # funziona solo se l'utente registrato
+        autori = []
+        for email in email_autori:
+            autori.append( r.hget(email, "Username"))
+        """
+        
+        print(f"{i}. {titolo}")
+        print(f"{testo}")
+        print(f"Autori: {', '.join(email_autori)}")
+        print(f"Voti: {voti}")
+        print()
+
 
 
 def controlla_proposte_simili(proposta):
@@ -142,7 +166,7 @@ def main():
     if choice == 1:
         user, email = login()
     elif choice == 2:
-        user = register()
+        user, email = register()
     else:
         raise ValueError("Valore non valido")
 
@@ -152,7 +176,7 @@ def main():
         if choice == 1:
             nuova_proposta(user, email)
         elif choice == 2:
-            vota_proposta(user)
+            vota_proposta(user, email)
         elif choice == 3:
             vedi_proposte(user)
         elif choice == 4:
