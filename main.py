@@ -34,10 +34,9 @@ def register():
     if r.hgetall(email):
         raise ValueError("Utente già registrato")
     else:
-        r.hset(email, mapping={
-            "Username": user,
-            "Password": fernet.encrypt(password.encode())
-        })
+        user_data = f"{user}:{password}"
+        r.hset(email, "data", fernet.encrypt(user_data.encode()))
+        r.hset("user_emails", email, user)
         print(f"Benvenuto, {user}!")
     return user
 
@@ -45,14 +44,15 @@ def register():
 def login():
     email = input("Inserisci email: ")
     password = getpass("Inserisci password: ")
-    if r.hgetall(email) == {}:
+    stored_data = r.hget(email, "data")
+    if not stored_data:
         raise ValueError("Utente non registrato")
     else:
-        if fernet.decrypt(r.hget(email, "Password")).decode() != password:
+        stored_user, stored_pass = fernet.decrypt(stored_data).decode().split(':')
+        if stored_pass != password:
             raise ValueError("Password errata")
-        user = r.hget(email, "Username").decode()
-        print(f"Benvenuto, {user}!")
-    return user
+        print(f"Benvenuto, {stored_user}!")
+    return stored_user
 
 
 def nuova_proposta(user):
