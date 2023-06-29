@@ -4,6 +4,10 @@ from cryptography.fernet import Fernet
 import datetime
 import os
 from dotenv import load_dotenv
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import CountVectorizer
+from nltk.corpus import stopwords
+
 
 load_dotenv()
 
@@ -101,13 +105,12 @@ def vedi_proposte(user):
     return
 
 
-def controlla_proposte_simili(proposta):
-    """
-    Controlla se ci sono proposte con lo stesso titolo.
-    Controlla se ci sono proposte con la descrizione simile.
-    Se ci sono proposte simili non permette di creare la proposta ma viene aggiunto alla proposta l'utente che ha creato la proposta simile.
-    """
-    return
+def controlla_proposte_simili(descrizione1,descrizone2):
+    stop_words = stopwords.words('italian')
+    vectorizer = CountVectorizer(stop_words=stop_words)
+    vectorizer.fit([descrizione1,descrizone2])
+    vector = vectorizer.transform([descrizione1,descrizone2])
+    return cosine_similarity(vector)[0][1]
 
 
 def main():
