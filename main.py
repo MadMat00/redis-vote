@@ -57,9 +57,39 @@ def login():
 
 def nuova_proposta(user):
     titolo = input(f"Ciao {user}, inserisci il titolo della tua proposta: ")
-    testo = input("Molto bene, ora fai una breve descrizione della tua descrizione:")
-    controlla_proposte_simili(user)
-    r.sadd(titolo, testo)
+    testo = input("Molto bene, ora fai una breve descrizione della tua descrizione: ")
+
+    if r.hexists("proposals", titolo):
+        print("La proposta esiste già ed è la seguente:")
+
+        print(f"Titolo: {titolo}")
+        print(f"Descrizione: {r.hget('proposals', titolo).decode()}")
+
+        scelta = int(input("Se vuoi aggiungerti come collaboratore inserisci 1, altrimenti premi 0 e la proposta non sarà inserita:"))
+        if scelta == 1:
+            r.sadd(titolo, user)
+        return
+    else:
+        for titolo_esistente in r.hkeys("proposals"):
+            print(controlla_proposte_simili(testo,r.hget("proposals", titolo_esistente).decode()))
+            if controlla_proposte_simili(testo,r.hget("proposals", titolo_esistente).decode()) > 0.5 and controlla_proposte_simili(testo,r.hget("proposals", titolo_esistente).decode()) < 0.9:
+                print("La tua proposta è molto simile a questa:")
+                print(f"Titolo: {titolo_esistente.decode()}")
+                print(f"Descrizione: {r.hget('proposals', titolo_esistente).decode()}")
+                scelta = int(input("Se ritieni che ci sia un errore e la tua proposta è diversa premi 1 per aggiungerla comunque, altrimenti premi 0 e la proposta non sarà inserita:"))
+                if scelta == 1:
+                    r.hset("proposals", titolo, testo) 
+                    r.sadd(titolo, user)
+                return
+            elif controlla_proposte_simili(testo,r.hget("proposals", titolo_esistente).decode()) >= 0.9:
+                print("La tua proposta è troppo simile a questa:")
+                print(f"Titolo: {titolo_esistente.decode()}")
+                print(f"Descrizione: {r.hget('proposals', titolo_esistente).decode()}")
+                return
+
+    r.hset("proposals", titolo, testo) 
+    r.sadd(titolo, user)
+
     scelta = int(input("Se è una proposta fatta in collaborazione inserisci 1, se è una idea solo tua allora 0:"))
     if scelta == 1:
         print("Per uscire scrivere exit")
@@ -67,22 +97,11 @@ def nuova_proposta(user):
             email_compagno = input("Inserisci l'email del tuo compagno: ")
             if email_compagno == "exit":
                 break
-            r.sadd(testo, email_compagno)
-    else:
-        r.sadd(testo, email)
-
-    # per ottenere il testo bastera fare sismember(titolo)
-    # mentre per ottenere chi ha fatto la proposta basta fare sismemer(sismeber(titolo))
-
-    """
-    Permette all'utente di creare una nuova proposta.
-    L'utente inserisce il titolo e la descrizione della proposta.
-    Un utente può creare più proposte.
-    Non ci possono essere proposte con lo stesso titolo.
-    Si deve vedere chi ha creato la proposta.
-    Al momento della creazione viene aggiunto un voto.
-    La lista dei voti deve essere un set.
-    """
+            if r.hexists("user_emails", email_compagno):
+                compagno_username = r.hget("user_emails", email_compagno).decode()
+                r.sadd(titolo, compagno_username)
+            else:
+                print("Email non registrata.")
     return
 
 
