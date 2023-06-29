@@ -106,14 +106,19 @@ def nuova_proposta(user):
 
 
 def vota_proposta(user):
-    """
-    Permette all'utente di votare una proposta.
-    L'utente inserisce il titolo della proposta.
-    Un utente può votare più proposte.
-    Non ci possono essere più voti per la stessa proposta da parte dello stesso utente(il set da errore).
-    L'utente non può votare la sua proposta.
-    """
-    return
+    titolo = input("Inserisci il titolo della proposta che vuoi votare: ")
+    if not r.hexists("proposals", titolo):
+        print("Proposta non esistente.")
+        return
+    if r.sismember(titolo, user):
+        print("\nNon puoi votare per la tua proposta.\n")
+        return
+    length = r.scard(f"{titolo}_votes")
+    r.sadd(f"{titolo}_votes", user)
+    if r.scard(f"{titolo}_votes") > length:
+        print("Voto registrato.")
+    else:
+        print("\nHai già votato questa proposta.\n")
 
 
 def vedi_proposte(user):
