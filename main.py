@@ -71,7 +71,6 @@ def nuova_proposta(user):
         return
     else:
         for titolo_esistente in r.hkeys("proposals"):
-            print(controlla_proposte_simili(testo,r.hget("proposals", titolo_esistente).decode()))
             if controlla_proposte_simili(testo,r.hget("proposals", titolo_esistente).decode()) > 0.5 and controlla_proposte_simili(testo,r.hget("proposals", titolo_esistente).decode()) < 0.9:
                 print("La tua proposta è molto simile a questa:")
                 print(f"Titolo: {titolo_esistente.decode()}")
@@ -125,8 +124,9 @@ def vedi_proposte(user):
     for titolo in r.hkeys("proposals"):
         print(f"Titolo: {titolo.decode()}")
         print(f"Descrizione: {r.hget('proposals', titolo).decode()}")
-        print(f"Numero di voti: {r.scard(f'{titolo.decode()}_votes')}")
         collaboratori = [email.decode() for email in r.smembers(titolo.decode())]
+        print(f"Numero di voti: {r.scard(f'{titolo.decode()}_votes')+len(collaboratori)}")
+        
         print(f"Collaboratori: {', '.join(collaboratori)}")
 
 
