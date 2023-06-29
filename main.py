@@ -117,11 +117,12 @@ def vota_proposta(user):
 
 
 def vedi_proposte(user):
-    """
-    Permette all'utente di vedere le proposte.
-    L'utente può vedere le proposte ordinate per numero di voti (lunghezza del set).    
-    """
-    return
+    for titolo in r.hkeys("proposals"):
+        print(f"Titolo: {titolo.decode()}")
+        print(f"Descrizione: {r.hget('proposals', titolo).decode()}")
+        print(f"Numero di voti: {r.scard(f'{titolo.decode()}_votes')}")
+        collaboratori = [email.decode() for email in r.smembers(titolo.decode())]
+        print(f"Collaboratori: {', '.join(collaboratori)}")
 
 
 def controlla_proposte_simili(descrizione1,descrizone2):
