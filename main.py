@@ -8,12 +8,18 @@ from dotenv import load_dotenv
 load_dotenv()
 
 r = redis.Redis(
-    host=os.getenv("redis-19972.c300.eu-central-1-1.ec2.cloud.redislabs.com"),
-    port=os.getenv("19972"),
-    password=os.getenv("NgAd1ouoICZTBouwpkWjCzPm2YUE0GBS"),
+    host=os.getenv("REDIS_HOST"),
+    port=int(os.getenv("REDIS_PORT")),
+    password=os.getenv("REDIS_PASSWORD"),
 )
 
-fernet = Fernet(r.get("ENCRIPTION_KEY"))
+
+if not r.get("encryption_key"):
+    encryption_key = Fernet.generate_key()
+    r.set("encryption_key", encryption_key)
+
+encryption_key = r.get("encryption_key")
+fernet = Fernet(encryption_key)
 
 
 def register():
@@ -127,3 +133,6 @@ def main():
         elif choice == 4:
             print("Arrivederci!")
             break
+
+if __name__ == "__main__":
+    main()
