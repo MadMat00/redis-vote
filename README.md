@@ -25,7 +25,7 @@ REDIS_PASSWORD = NgAd1ouoICZTBouwpkWjCzPm2YUE0GBS
 
 ## How It Works
 
-To run the program:
+Run the program:
 ```bash
 python main.py
 ```
@@ -49,7 +49,7 @@ After that, the user can choose various operations through a menu:
 
 ### Extra
 
-To check for the insertion of similar proposals, the sklearn library was used.
+The sklearn library was used to check for the insertion of similar proposals.
 
 ## Redis
 
