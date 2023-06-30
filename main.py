@@ -1,13 +1,17 @@
 import redis
 from getpass import getpass
 from cryptography.fernet import Fernet
-import datetime
 import os
 from dotenv import load_dotenv
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
 from nltk.corpus import stopwords
+from rich import print
+from rich.table import Table
+from rich.console import Console
 
+
+console = Console()
 
 load_dotenv()
 
@@ -32,12 +36,12 @@ def register():
     password = getpass("Inserisci password: ")
 
     if r.hgetall(email):
-        raise ValueError("Utente già registrato")
+        console.print("[red]Utente già registrato[/red]")
     else:
         user_data = f"{user}:{password}"
         r.hset(email, "data", fernet.encrypt(user_data.encode()))
         r.hset("user_emails", email, user)
-        print(f"Benvenuto, {user}!")
+        console.print(f"[green]Benvenuto, {user}![/green]")
     return user
 
 
@@ -121,13 +125,21 @@ def vota_proposta(user):
 
 
 def vedi_proposte(user):
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("Titolo", style="dim", width=20)
+    table.add_column("Descrizione", width=80)
+    table.add_column("Numero di Voti", justify="right")
+    table.add_column("Collaboratori")
+
     for titolo in r.hkeys("proposals"):
-        print(f"Titolo: {titolo.decode()}")
-        print(f"Descrizione: {r.hget('proposals', titolo).decode()}")
-        collaboratori = [email.decode() for email in r.smembers(titolo.decode())]
-        print(f"Numero di voti: {r.scard(f'{titolo.decode()}_votes')+len(collaboratori)}")
-        
-        print(f"Collaboratori: {', '.join(collaboratori)}")
+        descrizione = r.hget('proposals', titolo).decode()
+        numero_voti = str(r.scard(f'{titolo.decode()}_votes') + len([email.decode() for email in r.smembers(titolo.decode())]))
+        collaboratori = ', '.join([email.decode() for email in r.smembers(titolo.decode())])
+        table.add_row(titolo.decode(), descrizione, numero_voti, collaboratori)
+        table.add_row("", "", "", "")
+
+    print(table)
+
 
 
 def controlla_proposte_simili(descrizione1,descrizone2):
