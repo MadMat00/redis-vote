@@ -17,9 +17,9 @@ To use the application and connect to the Redis database, you need to create an 
 ```bash
 touch .env
 # Enter the following information
-REDIS_HOST = redis-19972.c300.eu-central-1-1.ec2.cloud.redislabs.com
-REDIS_PORT = 19972
-REDIS_PASSWORD = NgAd1ouoICZTBouwpkWjCzPm2YUE0GBS
+REDIS_HOST = <connection string>
+REDIS_PORT = <redis port>
+REDIS_PASSWORD = <redis password>
 ```
 
 
