@@ -51,6 +51,9 @@ After that, the user can choose various operations through a menu:
 
 The sklearn library was used to check for the insertion of similar proposals.
 
+## Demo
+<video width="630" height="300" src="https://drive.google.com/file/d/1-rbdY0ifwtalkxR3_mBVJLKpE0hbFDNt/view?usp=drive_link"></video>
+
 ## Redis
 
 The proposal data and user information are managed with a Redis database.
