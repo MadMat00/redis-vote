@@ -52,9 +52,8 @@ After that, the user can choose various operations through a menu:
 The sklearn library was used to check for the insertion of similar proposals.
 
 ## Demo
-<video width="630" height="300" src="https://drive.google.com/file/d/1-rbdY0ifwtalkxR3_mBVJLKpE0hbFDNt/view?usp=drive_link"></video>
-[<img src="[https://img.youtube.com/vi/APOPm01BVrk/hqdefault.jpg](https://drive.google.com/file/d/1-rbdY0ifwtalkxR3_mBVJLKpE0hbFDNt/view?usp=drive_link)" width="600" height="300"
-/>](https://drive.google.com/file/d/1-rbdY0ifwtalkxR3_mBVJLKpE0hbFDNt/view?usp=drive_link)
+[<img src="https://drive.google.com/file/d/1-l4P7uX44CiHZjjE4Ifzl6FG2J2lPhM_/view?usp=drive_link)" width="600" height="300"
+/>](https://drive.google.com/file/d/1-l4P7uX44CiHZjjE4Ifzl6FG2J2lPhM_/view?usp=drive_link)
 
 ## Redis
 
